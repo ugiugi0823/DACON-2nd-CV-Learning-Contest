@@ -1,3 +1,37 @@
+import os
+import csv
+import cv2
+import argparse
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from PIL import Image
+from sklearn.model_selection import KFold
+import random
+from time import time
+import IPython
+import copy
+
+import torch
+import torch.optim as optim
+from torch import nn
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
+
+from warmup_scheduler import GradualWarmupScheduler
+
+from src.train import train_model
+from utils.imageprocess import image_transformer, tta_transformer
+from utils.EarlyStopping import EarlyStopping
+from utils.dataloader import CustomDataLoader
+# from utils.radams import RAdam
+from utils.call_model import CallModel
+
+from tqdm import tqdm
+import logging
+
+
+
 # main.py
 
 # -----------------------------
@@ -197,13 +231,13 @@ if __name__ == "__main__":
     # ARGUMENTS PARSER
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_index", type=int, default=0, help='My model index. Integer type, and should be greater than 0')
-    parser.add_argument("--base_dir", type=str, default="/home/sks/COMPETITION/DACON/computer_vision2", help='Base PATH of your work')
+    parser.add_argument("--base_dir", type=str, default="/content/DACON-4D", help='Base PATH of your work')
     parser.add_argument("--mode", type=str, default="train", help='[train | test]')
     parser.add_argument("--data_type", type=str, default="denoised", help='[original | denoised]: default=denoised')
-    parser.add_argument("--ckpt_path", type=str, default="/home/sks/COMPETITION/DACON/computer_vision2/ckpt", help='PATH to weights of ckpts.')
-    parser.add_argument("--base_model", type=str, default="resnet50", help="[plain_resnet50, custom_resnet50, plain_efficientnetb4]")
+    parser.add_argument("--ckpt_path", type=str, default="/content/DACON-4D", help='PATH to weights of ckpts.')
+    parser.add_argument("--base_model", type=str, default="resnet18", help="[plain_resnet50, custom_resnet50, plain_efficientnetb4]")
     parser.add_argument("--pretrained", dest='pretrained', action='store_true', help='Default is false, so specify this argument to use pretrained model')
-    parser.add_argument("--pretrained_weights_dir", type=str, default="/home/sks/COMPETITION/DACON/computer_vision2/pretrained_model", help='PATH to weights of pretrained model')
+    parser.add_argument("--pretrained_weights_dir", type=str, default="/content/drive/MyDrive/pretraines_model", help='PATH to weights of pretrained model')
     parser.add_argument("--cuda", dest='cuda', action='store_false', help='Whether to use CUDA: defuault is True, so specify this argument not to use CUDA')
     parser.add_argument("--device_index", type=int, default=0, help='Cuda device to use. Used for multiple gpu environment')
     parser.add_argument("--batch_size", type=int, default=32, help='Batch size for train-loader for training phase')

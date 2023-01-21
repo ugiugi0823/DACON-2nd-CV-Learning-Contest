@@ -2,7 +2,7 @@
 import torch.optim as optim
 import torch
 import os
-import time
+from time import time
 
 from torch import nn
 from warmup_scheduler import GradualWarmupScheduler
@@ -27,14 +27,14 @@ def train_model(input_model, fold_k, model_save_path, args, logger, *loaders):
     # ----------------------
     #  Loss function / Opt
     # ----------------------
-    loss_function = MultiLabelSoftMarginLoss()
-    optimizer = RAdam(model.parameters(), lr=learning_rate, betas=(0.9, 0.999), weight_decay=1e-4)
+    loss_function = nn.MultiLabelSoftMarginLoss()
+    optimizer = optim.RAdam(model.parameters(), lr=learning_rate, betas=(0.9, 0.999), weight_decay=1e-4)
     
     
     # -----------------
     #   amp wrapping
     # -----------------
-    scaler = amp.GradScaler()
+    scaler = torch.cuda.amp.GradScaler()
 
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer,
                                                         milestones=[
@@ -70,7 +70,6 @@ def train_model(input_model, fold_k, model_save_path, args, logger, *loaders):
     logger.info(f'Training begins... Epochs = {epochs}')
     
     for epoch in range(epochs):
-        
         time_start = time()
 
         if epoch <= warmup_epochs:
@@ -97,7 +96,7 @@ def train_model(input_model, fold_k, model_save_path, args, logger, *loaders):
             
             optimizer.zero_grad()
             
-            with amp.autocast():
+            with torch.cuda.amp.autocast():
                 train_pred = model(train_X)
                 train_loss = loss_function(train_pred, train_Y)
             
@@ -130,7 +129,7 @@ def train_model(input_model, fold_k, model_save_path, args, logger, *loaders):
             
             for idx, (val_X, val_Y) in enumerate(val_loader):
                 
-                with amp.autocast():
+                with torch.cuda.amp.autocast():
                     val_pred = model(val_X)
                     val_loss = loss_function(val_pred, val_Y)
                 

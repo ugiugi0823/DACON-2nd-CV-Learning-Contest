@@ -20,6 +20,7 @@ from torchvision import transforms
 
 from warmup_scheduler import GradualWarmupScheduler
 
+import torchvision.transforms.functional as TF
 # from src.train import train_model
 # from utils.imageprocess import image_transformer, image_processor
 # from utils.EarlyStopping import EarlyStopping
